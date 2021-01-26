@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from NeuralNetwork import NeuralNetwork
 from Layers import DenseLayer
-from Optimizers import GradientDescent
+from Optimizers import GradientDescent, Momentum, RMSprop, Adam
 from Losses import BinaryCrossentropy
 from Activations import Sigmoid, ReLU
 
@@ -57,8 +57,8 @@ print('Sample of training labels:', Y[:, :5])
 
 # Split the training and testing data
 X = preprocess(X)
-X_train, Y_train = X[:, :-100], Y[:, :-100]
-X_test, Y_test = X[:, -100:], Y[:, -100:]
+X_train, Y_train = X[:, :-200], Y[:, :-200]
+X_test, Y_test = X[:, -200:], Y[:, -200:]
 
 print('Shape of training images', X_train.shape)
 print('Shape of training labels', Y_train.shape)
@@ -71,16 +71,30 @@ model = NeuralNetwork([
             DenseLayer(1, activation=Sigmoid(), n_prev=256)
         ])
 
-model.compile(loss=BinaryCrossentropy(), optimizer=GradientDescent(learning_rate=7e-2))
+model.compile(loss=BinaryCrossentropy(), optimizer=GradientDescent(learning_rate=1e-2), metrics=['cost', 'accuracy', 'validation_accuracy'])
 
 # Train the model
-metrics = model.fit(X_train, Y_train, num_epochs=800, print_after_steps=100)
+metrics = model.fit(
+        X_train, 
+        Y_train,  
+        validation_X=X_test[:, :100],
+        validation_Y=Y_test[:, :100],
+        num_epochs=20, 
+        batch_size=256, 
+        print_after_steps=10
+    )
 
 # Display trend of costs
-
 plt.plot(range(len(metrics['cost'])), metrics['cost'])
-plt.xlabel('Epochs')
+plt.xlabel('Steps')
 plt.ylabel('Cost')
+plt.show()
+
+# Display trend of training and validation accuracy
+plt.plot(range(len(metrics['accuracy'])), metrics['accuracy'], 'c-')
+plt.plot(range(len(metrics['validation_accuracy'])), metrics['validation_accuracy'], 'm-')
+plt.xlabel('Steps')
+plt.ylabel('Accuracy')
 plt.show()
 
 # Make predictions

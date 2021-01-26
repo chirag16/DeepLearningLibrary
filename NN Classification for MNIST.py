@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from NeuralNetwork import NeuralNetwork
 from Layers import DenseLayer
-from Optimizers import GradientDescent
+from Optimizers import GradientDescent, Momentum, RMSprop, Adam
 from Losses import CategoricalCrossentropy
 from Activations import Softmax, ReLU
 
@@ -93,8 +93,8 @@ print('Sample of training labels:', Y[:, :5])
 
 # Split the training and testing data
 X = preprocess(X)
-X_train, Y_train = X[:, :-100], Y[:, :-100]
-X_test, Y_test = X[:, -100:], Y[:, -100:]
+X_train, Y_train = X[:, :-300], Y[:, :-300]
+X_test, Y_test = X[:, -300:], Y[:, -300:]
 
 print('Shape of training images', X_train.shape)
 print('Shape of training labels', Y_train.shape)
@@ -107,16 +107,30 @@ model = NeuralNetwork([
             DenseLayer(NUM_CLASSES, activation=Softmax(), n_prev=256)
         ])
 
-model.compile(loss=CategoricalCrossentropy(), optimizer=GradientDescent(learning_rate=7e-2))
+model.compile(loss=CategoricalCrossentropy(), optimizer=Adam(learning_rate=1e-2), metrics=['cost', 'accuracy', 'validation_accuracy'])
 
 # Train the model
-metrics = model.fit(X_train, Y_train, num_epochs=5000, print_after_steps=100)
+metrics = model.fit(
+        X_train, 
+        Y_train, 
+        validation_X=X_test[:, :200],
+        validation_Y=Y_test[:, :200],
+        num_epochs=50, 
+        batch_size=1024, 
+        print_after_steps=10
+    )
 
 # Display trend of costs
-
 plt.plot(range(len(metrics['cost'])), metrics['cost'])
 plt.xlabel('Epochs')
 plt.ylabel('Cost')
+plt.show()
+
+# Display trend of training and validation accuracy
+plt.plot(range(len(metrics['accuracy'])), metrics['accuracy'], 'c-')
+plt.plot(range(len(metrics['validation_accuracy'])), metrics['validation_accuracy'], 'm-')
+plt.xlabel('Steps')
+plt.ylabel('Accuracy')
 plt.show()
 
 # Make predictions

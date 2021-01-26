@@ -17,8 +17,11 @@ class Layer(ABC):
     def backward_propagation(self, dA):
         pass
     
-    def update_parameters(self, optimizer):
-        self.W, self.b = optimizer.optimize(self.W, self.b, self.dW, self.db)
+    def set_optimizer(self, optimizer):
+        self.optimizer = optimizer
+    
+    def update_parameters(self):
+        self.W, self.b = self.optimizer.optimize(self.W, self.b, self.dW, self.db)
     
 
 """
